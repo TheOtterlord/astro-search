@@ -13,8 +13,41 @@ import { SITE_TITLE } from '../config';
 		<HeaderLink href="/about">About</HeaderLink>
 		<HeaderLink href="https://twitter.com/astrodotbuild" target="_blank">Twitter</HeaderLink>
 		<HeaderLink href="https://github.com/withastro/astro" target="_blank">GitHub</HeaderLink>
+    <div class="right">
+      <input id="search" type="text" placeholder="Search..."/>
+    </div>
 	</nav>
 </header>
+
+<div id="results" />
+
+<script is:inline>
+  document.querySelector('#search')?.addEventListener('input', async (e) => {
+    // only load the pagefind script once
+    if (e.target.dataset.loaded !== 'true') {
+      e.target.dataset.loaded = 'true'
+      // load the pagefind script
+      window.pagefind = await import("/pagefind/pagefind.js");
+    }
+
+    // search the index using the input value
+    const search = await window.pagefind.search(e.target.value)
+
+    // clear the old results
+    document.querySelector('#results').innerHTML = ''
+
+    // add the new results
+    for (const result of search.results) {
+      const data = await result.data()
+      document.querySelector('#results').innerHTML += `
+        <a href="${data.url}">
+          <h3>${data.meta.title}</h3>
+          <p>${data.excerpt}</p>
+        </a>`
+    }
+  })
+</script>
+
 <style>
 	header {
 		margin: 0em 0 2em;
@@ -22,4 +55,9 @@ import { SITE_TITLE } from '../config';
 	h2 {
 		margin: 0.5em 0;
 	}
+  .right {
+    float: right;
+  }
+  #results {
+  }
 </style>
